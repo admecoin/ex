@@ -1,7 +1,7 @@
 
 .api {
 
-	$detail-background-color: rgba(255, 255, 255, 0.3);
+	$detail-background-color: #323d50;
 
 	/*@include media-breakpoint-up(md) {
 		flex-direction: column;
@@ -39,6 +39,10 @@
 	&__call {
 		margin-bottom: $margin-lg;
 		position: relative;
+
+		&:hover {
+			color: $blue;
+		}
 	}
 
 	&__call-name {
@@ -46,11 +50,11 @@
 	}
 
 	&__call-detail {
-		color: $black;
+		color: $white;
 		cursor: pointer;
 		position: absolute;
 		right: -95%;
-		top: 0;
+		top: 3px;
 		width: 80%;
 
 		@include media-breakpoint-down(sm) {
@@ -58,11 +62,15 @@
 			margin-top: 1em;
 			position: initial;
 		}
+
+		&:hover {
+			color: $gray;
+		}
 	}
 
 	&__call-detail-indicator {
 		display: none;
-		color: $black;
+		color: $white;
 		position: absolute;
 		top: .13em;
 		right: -32px;
@@ -111,6 +119,7 @@
 		}
 
 		background-color: $detail-background-color;
+		margin-top: 2px;
 		flex: 1;
 	}
 

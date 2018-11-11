@@ -9,7 +9,7 @@ import CountUp from '../CountUp';
 import GraphLine from '../Graph/GraphLine';
 import Icon from '../Icon';
 
-export default class CardMarket extends Component {
+export default class CardStatus extends Component {
   static defaultProps = {
     btc: 0.0,
     usd: 0.0,
@@ -37,13 +37,14 @@ export default class CardMarket extends Component {
     const dirArrow = isPos ? 'arrow-up' : 'arrow-down';
 
     return (
+      <div className="animated fadeInUp">
       <Card className="card--market" title="Market">
         <p className="card__data-main bariol">
           <CountUp
             decimals={ 2 }
             duration={ 1 }
             end={ this.props.usd }
-            prefix={ 'SAP $' }
+            prefix={ 'BWK $' }
             start={ 0 } />
         </p>
         <p className="card__data-sub">{ this.props.btc } BTC</p>
@@ -69,6 +70,7 @@ export default class CardMarket extends Component {
           </div>
         </div>
       </Card>
+      </div>
     );
   };
 }

@@ -19,6 +19,9 @@ async function syncMasternode() {
 
   await Masternode.remove({});
 
+  // Increase the timeout for masternode.
+  rpc.timeout(10000); // 10 secs
+
   const mns = await rpc.call('masternode', ['list']);
   const inserts = [];
   await forEach(mns, async (mn) => {
@@ -58,7 +61,12 @@ async function update() {
     console.log(err);
     code = 1;
   } finally {
-    locker.unlock(type);
+    try {
+      locker.unlock(type);
+    } catch(err) {
+      console.log(err);
+      code = 1;
+    }
     exit(code);
   }
 }

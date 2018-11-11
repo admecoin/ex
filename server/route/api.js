@@ -6,11 +6,15 @@ const iquidus = require('../handler/iquidus');
 const router = express.Router();
 
 router.get('/address/:hash', blockex.getAddress);
+router.get('/block/average', blockex.getAvgBlockTime());
+router.get('/block/is/:hash', blockex.getIsBlock);
 router.get('/block/:hash', blockex.getBlock);
 router.get('/coin', blockex.getCoin);
 router.get('/coin/history', blockex.getCoinHistory);
 router.get('/coin/week', blockex.getCoinsWeek());
 router.get('/masternode', blockex.getMasternodes);
+router.get('/masternode/average', blockex.getAvgMNTime());
+router.get('/masternode/:hash', blockex.getMasternodeByAddress);
 router.get('/masternodecount', blockex.getMasternodeCount);
 router.get('/peer', blockex.getPeer);
 router.get('/supply', blockex.getSupply);

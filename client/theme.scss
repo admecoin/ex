@@ -1,13 +1,13 @@
 
 /* Variables */
-$black: #222222;
-$blue: #1991eb;
+$black: #151515;
+$blue: rgba(41, 77, 234, 1);
 $blue-dark: #595ff5;
 $blue-light: #2ba2f8;
 $gray: #adadad;
 $gray-dark: #354052;
 $gray-light: #e8e8e8;
-$green: #39b54a;
+$green: #61d75e;
 $red: #ed1c24;
 $orange: #f7981c;
 $white: #ffffff;
@@ -16,8 +16,8 @@ $white-light: rgba(255,255,255,.5);
 $margin: 1rem;
 $margin-lg: 1.5rem;
 
-$menu-gradient-main: #000000;
-$menu-gradient-secondary: #000000;
+$menu-gradient-main: #295af5;
+$menu-gradient-secondary: #595ff5;
 $menu-width-open: 240px;
 $menu-width-close: 110px;
 $menu-mobile-height: 70px;
@@ -53,19 +53,19 @@ $pagination-line-height:            1;
 $pagination-color:                  $gray;
 $pagination-bg:                     $white;
 $pagination-border-width:           1px;
-$pagination-border-color:           $gray-light;
+$pagination-border-color:           $gray;
 
-$pagination-hover-color:            $green;
+$pagination-hover-color:            $blue;
 $pagination-hover-bg:            	$white;
-$pagination-hover-border-color:    	$gray-light;
+$pagination-hover-border-color:    	$blue;
 
-$pagination-active-color:           $green;
+$pagination-active-color:           $black;
 $pagination-active-bg:           	$white;
 $pagination-active-border-color:    $gray-light;
 
-$pagination-disabled-color:         $gray-light;
+$pagination-disabled-color:         $gray;
 $pagination-disabled-bg:            $gray-light;
-$pagination-disabled-border-color:  $gray-light;
+$pagination-disabled-border-color:  $gray;
 
 @import "~bootstrap/scss/bootstrap.scss";
 @import "./sass/font";
@@ -77,6 +77,8 @@ $pagination-disabled-border-color:  $gray-light;
 @import "./sass/search";
 @import "./sass/table";
 @import "./sass/utility";
+@import "./sass/animatevars";
+@import "../node_modules/animate-sass/animate";
 
 @import "./sass/footer";
 @import "./sass/loading";
@@ -90,14 +92,15 @@ $pagination-disabled-border-color:  $gray-light;
 
 /* Reset */
 html, body {
-	background: url('/img/methuselah-tree.jpg');
-	background-repeat: no-repeat;
-	background-size: cover;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    width: 100vw;
+	text-rendering: auto;
+	text-shadow: none;
+	-webkit-font-smoothing: antialiased;
+	-webkit-text-stroke: 0;
+	height: 100vh;
+	margin: 0;
+	padding: 0;
+	overflow-x: hidden;
+	width: 100vw;
 }
 
 a, a:visited {
@@ -106,23 +109,18 @@ a, a:visited {
 }
 
 a:hover {
-	color: $green;
+	color: $blue;
 	text-decoration: none;
 	transition: all 1s cubic-bezier(0, 1, .5, 1);
 }
 
 h1, h2, h3, h4, h5, h6 {
-	color: $green;
 	display: inline-block;
 	font-weight: bolder;
 }
 
 #react-app {
 	height: 100%;
-}
-
-.page-link {
-	height: 36px;
 }
 
 .page-wrapper {
@@ -143,11 +141,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .badge {
 	border-radius: 2.5px;
+	color: $black;
 	font-family: $fontSmall;
 	font-size: 0.85em;
 	font-weight: normal;
 	font-style: normal;
 	font-stretch: normal;
+	font-weight: bold;
 	line-height: normal;
 	letter-spacing: normal;
 	min-width: 60%;
@@ -171,7 +171,6 @@ h1, h2, h3, h4, h5, h6 {
 
 // Content Wrapper
 .content {
-	background: transparent;
 	flex: 1;
 	overflow-y: auto;
 
@@ -194,10 +193,15 @@ h1, h2, h3, h4, h5, h6 {
 	}
 	*/
 
+	&__inner-wrapper {
+		min-height: 50vh;
+	}
+
     &__wrapper {
-		background: transparent;
+		background-color: $white;
 	    margin: 0 auto;
-	    min-height: 80vh;
+		min-height: 80vh;
+		overflow-x: hidden;
 		padding: 1em 2em 2em;
 	    position: relative;
 		transition: all 1s cubic-bezier(0, 1, .5, 1);
@@ -225,3 +229,10 @@ h1, h2, h3, h4, h5, h6 {
 
 }
 
+.text-gray {
+	color: lighten($gray-dark, 20%);
+}
+
+.mb-3 {
+	margin-bottom: 3px;
+}

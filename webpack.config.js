@@ -16,7 +16,8 @@ const basePlugins = [
   htmlPlugin,
   new webpack.EnvironmentPlugin({
     DEBUG: JSON.stringify(process.env.DEBUG || false),
-    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+    NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
   }),
   new webpack.HotModuleReplacementPlugin(),
   new webpack.NamedModulesPlugin(),
@@ -26,10 +27,15 @@ const basePlugins = [
 ];
 
 const prodPlugins = [
-  new uglifyJsPlugin(),
   new compressionPlugin({
     algorithm: 'gzip',
     asset: '[path].gz[query]'
+  }),
+  new webpack.optimize.UglifyJsPlugin({
+    compress: { warnings: false },
+    comments: false,
+    sourceMap: true,
+    minimize: false
   })
 ];
 
@@ -45,6 +51,7 @@ module.exports = {
     port: 8081,
     publicPath: '/'
   },
+  devtool: 'source-map',
   entry: ['babel-polyfill', './client/index.js'],
   module: {
     rules: [

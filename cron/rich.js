@@ -16,10 +16,10 @@ async function syncRich() {
   const addresses = await UTXO.aggregate([
     { $group: { _id: '$address', sum: { $sum: '$value' } } },
     { $sort: { sum: -1 } },
-    { $limit: 100 }
+    { $limit: 101 }
   ]);
 
-  await Rich.insertMany(addresses.map(addr => ({
+  await Rich.insertMany(addresses.filter(addr => addr._id !== 'ZEROCOIN').map(addr => ({
     address: addr._id,
     value: addr.sum
   })));
@@ -39,7 +39,12 @@ async function update() {
     console.log(err);
     code = 1;
   } finally {
-    locker.unlock(type);
+    try {
+      locker.unlock(type);
+    } catch(err) {
+      console.log(err);
+      code = 1;
+    }
     exit(code);
   }
 }

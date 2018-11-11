@@ -34,6 +34,7 @@ export default class CardNetworkSummary extends Component {
     }
 
     return (
+      <div className="animated fadeInUp">
       <Card
         className="card--graph"
         title="Network">
@@ -49,13 +50,14 @@ export default class CardNetworkSummary extends Component {
           Difficulty: { numeral(this.props.difficulty).format('0,0.00') }
         </p>
           <GraphLine
-            color="#39b54a"
+            color="#1991eb"
             className="card__graph"
             data={ this.props.yAxis.reverse() }
             height="100px"
             labels={ this.props.xAxis.reverse() }
            />
       </Card>
+      </div>
     );
   };
 }

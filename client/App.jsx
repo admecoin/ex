@@ -3,11 +3,12 @@ import Actions from './core/Actions';
 import Component from './core/Component';
 import { connect } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
-import { isAddress, isBlock } from '../lib/blockchain';
+import { isAddress, isBlock, isTX } from '../lib/blockchain';
 import { Link, Route, Switch } from 'react-router-dom';
 import promise from 'bluebird';
 import PropTypes from 'prop-types';
 import React from 'react';
+import searchHistory from '../lib/searchHistory';
 
 // Route Containers
 import Address from './container/Address';
@@ -20,6 +21,7 @@ import Masternode from './container/Masternode';
 import Movement from './container/Movement';
 import Overview from './container/Overview';
 import Peer from './container/Peer';
+import PoS from './container/PoS';
 import Statistics from './container/Statistics';
 import Top100 from './container/Top100';
 import TX from './container/TX';
@@ -37,10 +39,8 @@ class App extends Component {
   static propTypes = {
     // Dispatch
     getCoins: PropTypes.func.isRequired,
-    getTXs: PropTypes.func.isRequired,
-    setWatch: PropTypes.func.isRequired,
-    // State
-    watch: PropTypes.array.isRequired
+    getIsBlock: PropTypes.func.isRequired,
+    getTXs: PropTypes.func.isRequired
   };
 
   constructor(props) {
@@ -48,9 +48,14 @@ class App extends Component {
 
     this.state = {
       init: true,
-      limit: 10
+      limit: 10,
+      searches: []
     };
     this.timer = { coins: null, txs: null };
+  };
+
+  componentWillMount() {
+    this.setState({ searches: searchHistory.get() });
   };
 
   componentDidMount() {
@@ -89,7 +94,7 @@ class App extends Component {
         .getCoins({ limit: 12 })
         .then(this.getCoins)
         .catch(this.getCoins);
-    }, 60000); // 1 minute
+    }, 30000); // 30 seconds
   };
 
   getTXs = () => {
@@ -105,23 +110,32 @@ class App extends Component {
     }, 30000); // 30 seconds
   };
 
+  handleRemove = (term) => {
+    this.setState({ searches: searchHistory.del(term) });
+  };
+
   handleSearch = (term) => {
-    let path = '/#/';
-    if (isBlock(term)) {
-      path = `/#/block/${ term }`;
-    } else if (isAddress(term)) {
-      path = `/#/address/${ term }`;
-    } else {
-      path = `/#/tx/${ term }`;
-    }
-
-    document.location.href = path;
-
-    if (this.props.watch.length && this.props.watch[0] === term) {
+    // If term doesn't match then ignore.
+    if (!isTX(term) && !isBlock(term) && !isAddress(term)) {
       return;
     }
 
-    this.props.setWatch(term);
+    // Add to search history using localStorage.
+    this.setState({ searches: searchHistory.add(term) });
+
+    // Setup path for search.
+    let path = '/#/';
+    if (isAddress(term)) {
+      document.location.href = `/#/address/${ term }`;
+    } else if (!isNaN(term)) {
+      document.location.href = `/#/block/${ term }`;
+    } else {
+      this.props
+        .getIsBlock(term)
+        .then((is) => {
+          document.location.href = `/#/${ is ? 'block' : 'tx' }/${ term }`;
+        });
+    }
   };
 
   render() {
@@ -135,28 +149,34 @@ class App extends Component {
       <HashRouter>
         <div className="page-wrapper">
           <Menu onSearch={ this.handleSearch } />
-          <div className="content">
+          <div className="content" id="body-content">
             <div className="content__wrapper">
               {/* <Notification /> */}
+              <CoinSummary
+                onRemove={ this.handleRemove }
+                onSearch={ this.handleSearch }
+                searches={ this.state.searches.reverse() } />
               <SearchBar
                 className="d-none d-md-block mb-3"
                 onSearch={ this.handleSearch } />
-              <CoinSummary onSearch={ this.handleSearch } />
-              <Switch>
-                <Route exact path="/" component={ Overview } />
-                <Route exact path="/address/:hash" component={ Address } />
-                <Route exact path="/api" component={ API } />
-                <Route exact path="/block/:hash" component={ Block } />
-                <Route exact path="/coin" component={ CoinInfo } />
-                <Route exact path="/faq" component={ FAQ } />
-                <Route exact path="/masternode" component={ Masternode } />
-                <Route exact path="/movement" component={ Movement } />
-                <Route exact path="/peer" component={ Peer } />
-                <Route exact path="/statistics" component={ Statistics } />
-                <Route exact path="/top" component={ Top100 } />
-                <Route exact path="/tx/:hash" component={ TX } />
-                <Route component={ Error404 } />
-              </Switch>
+              <div className="content__inner-wrapper">
+                <Switch>
+                  <Route exact path="/" component={ Overview } />
+                  <Route exact path="/address/:hash" component={ Address } />
+                  <Route exact path="/api" component={ API } />
+                  <Route exact path="/block/:hash" component={ Block } />
+                  <Route exact path="/coin" component={ CoinInfo } />
+                  <Route exact path="/faq" component={ FAQ } />
+                  <Route exact path="/masternode" component={ Masternode } />
+                  <Route exact path="/movement" component={ Movement } />
+                  <Route exact path="/peer" component={ Peer } />
+                  <Route exact path="/pos/:amount" component={ PoS } />
+                  <Route exact path="/statistics" component={ Statistics } />
+                  <Route exact path="/top" component={ Top100 } />
+                  <Route exact path="/tx/:hash" component={ TX } />
+                  <Route component={ Error404 } />
+                </Switch>
+              </div>
               <Footer />
             </div>
           </div>
@@ -168,12 +188,12 @@ class App extends Component {
 
 const mapDispatch = dispatch => ({
   getCoins: query => Actions.getCoinHistory(dispatch, query),
-  getTXs: query => Actions.getTXLatest(dispatch, query),
-  setWatch: term => Actions.setWatch(dispatch, term)
+  getIsBlock: query => Actions.getIsBlock(query),
+  getTXs: query => Actions.getTXLatest(dispatch, query)
 });
 
 const mapState = state => ({
-  watch: state.watch
+
 });
 
 export default connect(mapState, mapDispatch)(App);

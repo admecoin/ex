@@ -9,12 +9,16 @@ import React from 'react';
 export default class CardAddress extends Component {
   static defaultProps = {
     address: '',
+    balance: 0.0,
+    received: 0.0,
     txs: [],
     utxo: []
   };
 
   static propTypes = {
     address: PropTypes.string.isRequired,
+    balance: PropTypes.number.isRequired,
+    received: PropTypes.number.isRequired,
     txs: PropTypes.array.isRequired,
     utxo: PropTypes.array.isRequired
   };
@@ -42,26 +46,8 @@ export default class CardAddress extends Component {
   };
 
   render() {
-    let trecv = 0;
-    let tsend = 0;
-
-    const values = this.props.utxo.map(tx => tx.value);
-    const balance = values.length
-      ? values.reduce((acc, val) => acc + val)
-      : 0;
-
-    // Generate sent and received, we can get sent
-    // by taking the total tx value minus balance.
-    let recv = 0;
-    this.props.txs.forEach((tx) => {
-      tx.vout.forEach((vout) => {
-        if (vout.address === this.props.address) {
-          recv += vout.value;
-        }
-      });
-    });
-
     return (
+      <div className="animated fadeIn">
       <div className="row">
         <div className="col-md-12 col-lg-8">
           <div className="card--address">
@@ -78,7 +64,7 @@ export default class CardAddress extends Component {
                 Sent:
               </span>
               <span className="card__result">
-                { numeral(recv - balance).format('0,0.0000') } SAP
+                -{ numeral(this.props.received - this.props.balance).format('0,0.0000') } BWK
               </span>
             </div>
             <div className="card__row">
@@ -86,7 +72,7 @@ export default class CardAddress extends Component {
                 Received:
               </span>
               <span className="card__result">
-                { numeral(recv).format('0,0.0000') } SAP
+                +{ numeral(this.props.received).format('0,0.0000') } BWK
               </span>
             </div>
             <div className="card__row">
@@ -94,7 +80,7 @@ export default class CardAddress extends Component {
                 Balance:
               </span>
               <span className="card__result">
-                { numeral(balance).format('0,0.0000') } SAP
+                { numeral(this.props.balance).format('0,0.0000') } BWK
               </span>
             </div>
           </div>
@@ -102,6 +88,7 @@ export default class CardAddress extends Component {
         <div className="col-md-12 col-lg-4 text-right">
           <canvas id="qr-code" />
         </div>
+      </div>
       </div>
     );
   };

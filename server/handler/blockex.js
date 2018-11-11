@@ -20,15 +20,127 @@ const UTXO = require('../../model/utxo');
  */
 const getAddress = async (req, res) => {
   try {
-    const qry = { 'vout.address': req.params.hash };
-    const txs = await TX.find(qry).sort({ blockHeight: -1 }).limit(1000);
-    const utxo = await UTXO.find({ address: req.params.hash }).sort({ blockHeight: -1 });
+    const txs = await TX
+      .aggregate([
+        { $match: { 'vout.address': req.params.hash } },
+        { $sort: { blockHeight: -1 } }
+      ])
+      .allowDiskUse(true)
+      .exec();
+    const utxo = await UTXO
+      .aggregate([
+          { $match: { address: req.params.hash } },
+          { $sort: { blockHeight: -1 } }
+      ])
+      .allowDiskUse(true)
+      .exec();
 
-    res.json({ txs, utxo });
+    const balance = utxo.reduce((acc, tx) => acc + tx.value, 0.0);
+    const received = txs.reduce((acc, tx) => acc + tx.vout.reduce((a, t) => a + t.value, 0.0), 0.0);
+
+    res.json({ balance, received, txs, utxo });
   } catch(err) {
     console.log(err);
     res.status(500).send(err.message || err);
   }
+};
+
+/**
+ * Will return the average block time over 24 hours.
+ * @param {Object} req The request object.
+ * @param {Object} res The response object.
+ */
+const getAvgBlockTime = () => {
+  // When does the cache expire.
+  // For now this is hard coded.
+  let cache = 90.0;
+  let cutOff = moment().utc().add(60, 'seconds').unix();
+  let loading = true;
+
+  // Generate the average.
+  const getAvg = async () => {
+    loading = true;
+
+    try {
+      const date = moment.utc().subtract(24, 'hours').toDate();
+      const blocks = await Block.find({ createdAt: { $gt: date } });
+      const seconds = 24 * 60 * 60;
+
+      cache = seconds / blocks.length;
+      cutOff = moment().utc().add(60, 'seconds').unix();
+    } catch(err) {
+      console.log(err);
+    } finally {
+      if (!cache) {
+        cache = 0.0;
+      }
+
+      loading = false;
+    }
+  };
+
+  // Load the initial cache.
+  getAvg();
+
+  return async (req, res) => {
+    res.json(cache || 0.0);
+
+    // If the cache has expired then go ahead
+    // and get a new one but return the current
+    // cache for this request.
+    if (!loading && cutOff <= moment().utc().unix()) {
+      await getAvg();
+    }
+  };
+};
+
+/**
+ * Will return the average masternode payout time over 24 hours.
+ * @param {Object} req The request object.
+ * @param {Object} res The response object.
+ */
+const getAvgMNTime = () => {
+  // When does the cache expire.
+  // For now this is hard coded.
+  let cache = 24.0;
+  let cutOff = moment().utc().add(5, 'minutes').unix();
+  let loading = true;
+
+  // Generate the average.
+  const getAvg = async () => {
+    loading = true;
+
+    try {
+      const date = moment.utc().subtract(24, 'hours').toDate();
+      const blocks = await Block.find({ createdAt: { $gt: date } });
+      const mns = await Masternode.find();
+
+      cache = (24.0 / (blocks.length / mns.length));
+      cutOff = moment().utc().add(5, 'minutes').unix();
+    } catch(err) {
+      console.log(err);
+    } finally {
+      if (!cache) {
+        cache = 0.0;
+      }
+
+      loading = false;
+    }
+  };
+
+  // Load the initial cache.
+  getAvg();
+
+  return async (req, res) => {
+    res.json(cache || 0.0);
+
+    // If the cache has expired then go ahead
+    // and get a new one but return the current
+    // cache for this request.
+    if (!loading && cutOff <= moment().utc().unix()) {
+      await getAvg();
+    }
+  };
 };
 
 /**
@@ -110,15 +222,17 @@ const getCoinsWeek = () => {
     loading = true;
 
     try {
-      const start = moment().utc().startOf('day').subtract(6, 'days').toDate();
-      const end = moment().utc().endOf('day').subtract(1, 'days').toDate();
+      const start = moment().utc().subtract(8, 'days').toDate();
+      const end = moment().utc().toDate();
       const qry = [
         // Select last 7 days of coins.
         { $match: { createdAt: { $gt: start, $lt: end } } },
         // Sort by _id/date field in ascending order (order -> newer)
         { $sort: { createdAt: 1 } }
       ];
+
       cache = await Coin.aggregate(qry);
+      cutOff = moment().utc().add(90, 'seconds').unix();
     } catch(err) {
       console.log(err);
     } finally {
@@ -142,6 +256,28 @@ const getCoinsWeek = () => {
 };
 
 /**
+ * Will return true if a block hash.
+ * @param {Object} req The request object.
+ * @param {Object} res The response object.
+ */
+const getIsBlock = async (req, res) => {
+  try {
+    let isBlock = false;
+
+    // Search for block hash.
+    const block = await Block.findOne({ hash: req.params.hash });
+    if (block) {
+      isBlock = true;
+    }
+
+    res.json(isBlock);
+  } catch(err) {
+    console.log(err);
+    res.status(500).send(err.message || err);
+  }
+};
+
+/**
  * Get list of masternodes from the server.
  * @param {Object} req The request object.
  * @param {Object} res The response object.
@@ -154,6 +290,23 @@ const getMasternodes = async (req, res) => {
     const mns = await Masternode.find().skip(skip).limit(limit).sort({ lastPaidAt: -1, status: 1 });
 
     res.json({ mns, pages: total <= limit ? 1 : Math.ceil(total / limit) });
+  } catch(err) {
+    console.log(err);
+    res.status(500).send(err.message || err);
+  }
+};
+
+/**
+ * Get a masternode by wallet adress hash from the server.
+ * @param {Object} req The request object.
+ * @param {Object} res The response object.
+ */
+const getMasternodeByAddress = async (req, res) => {
+  try {
+    const hash = req.params.hash;
+    const mns = await Masternode.findOne({ addr: hash});
+
+    res.json({ mns });
   } catch(err) {
     console.log(err);
     res.status(500).send(err.message || err);
@@ -272,7 +425,25 @@ const getTX = async (req, res) => {
       return;
     }
 
-    res.json(tx);
+    // Get the transactions that are found in the
+    // vin section of the tx.
+    const vin = [];
+    await forEach(tx.vin, async (vi) => {
+      if (vi.txId) {
+        const t = await TX.findOne({ txId: vi.txId });
+        if (!!t) {
+          t.vout.forEach((vo) => {
+            if (vo.n === vi.vout) {
+              vin.push({ address: vo.address, value: vo.value });
+            }
+          });
+        }
+      } else if (vi.coinbase) {
+        vin.push(vi);
+      }
+    });
+
+    res.json({ ...tx.toObject(), vin });
   } catch(err) {
     console.log(err);
     res.status(500).send(err.message || err);
@@ -328,7 +499,9 @@ const getTXsWeek = () => {
         // Sort by _id/date field in ascending order (order -> newer)
         { $sort: { _id: 1 } }
       ];
+
       cache = await TX.aggregate(qry);
+      cutOff = moment().utc().add(90, 'seconds').unix();
     } catch(err) {
       console.log(err);
     } finally {
@@ -353,11 +526,15 @@ const getTXsWeek = () => {
 
 module.exports =  {
   getAddress,
+  getAvgBlockTime,
+  getAvgMNTime,
   getBlock,
   getCoin,
   getCoinHistory,
   getCoinsWeek,
+  getIsBlock,
   getMasternodes,
+  getMasternodeByAddress,
   getMasternodeCount,
   getPeer,
   getSupply,

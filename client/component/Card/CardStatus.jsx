@@ -9,14 +9,16 @@ import CountUp from '../CountUp';
 
 export default class CardStatus extends Component {
   static defaultProps = {
-    avgBlockTime: '135 seconds',
+    avgBlockTime: 90,
+    avgMNTime: 24,
     blocks: 0,
     peers: 0,
     status: 'Offline'
   };
 
   static propTypes = {
-    avgBlockTime: PropTypes.string.isRequired,
+    avgBlockTime: PropTypes.number.isRequired,
+    avgMNTime: PropTypes.number.isRequired,
     blocks: PropTypes.number.isRequired,
     peers: PropTypes.number.isRequired,
     status: PropTypes.string.isRequired
@@ -26,7 +28,8 @@ export default class CardStatus extends Component {
     const isOn = this.props.status === 'Online';
 
     return (
-      <Card title="Status" className="card--status">
+      <div className="animated fadeInUp">
+      <Card title="Status" className="card--status" >
         <div className="card__row">
           <span className="card__label">Status:</span>
           <span className="card__result card__result--status">
@@ -52,22 +55,19 @@ export default class CardStatus extends Component {
         <div className="card__row">
           <span className="card__label">Peers:</span>
           <span className="card__result">
-            <Link to="/peer">
-              <b>
-                <CountUp
-                  decimals={ 0 }
-                  duration={ 1 }
-                  end={ this.props.peers }
-                  start={ 0 } />
-              </b>
-            </Link>
+            <Link to="/peer">{ this.props.peers }</Link>
           </span>
         </div>
         <div className="card__row">
           <span className="card__label">Avg. Block Time:</span>
-          <span className="card__result">{ this.props.avgBlockTime }</span>
+          <span className="card__result">{ this.props.avgBlockTime.toFixed(2) } seconds</span>
+        </div>
+        <div className="card__row">
+          <span className="card__label">Avg. MN Payment:</span>
+          <span className="card__result">{ this.props.avgMNTime.toFixed(2) } hours</span>
         </div>
       </Card>
+      </div>
     );
   };
 }

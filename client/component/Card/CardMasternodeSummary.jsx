@@ -27,6 +27,7 @@ export default class CardMasternodeSummary extends Component {
     const total = this.props.online + this.props.offline;
 
     return (
+      <div className="animated fadeInUp">
       <Card
         className="card--graph"
         title="Masternode">
@@ -39,12 +40,13 @@ export default class CardMasternodeSummary extends Component {
         </p>
         <p className="card__data-sub">Online: { this.props.online }</p>
         <GraphLine
-          color="#39b54a"
+          color="#1991eb"
           className="card__graph"
           data={ this.props.yAxis.reverse() }
           height="100px"
           labels={ this.props.xAxis.reverse() } />
       </Card>
+      </div>
     );
   };
 }

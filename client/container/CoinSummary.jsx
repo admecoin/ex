@@ -1,5 +1,6 @@
 
 import Actions from '../core/Actions';
+import blockchain from '../../lib/blockchain';
 import Component from '../core/Component';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -7,21 +8,22 @@ import React from 'react';
 
 import Icon from '../component/Icon';
 
+import CardMarket from '../component/Card/CardMarket';
 import CardMasternodeSummary from '../component/Card/CardMasternodeSummary';
-import CardNetworkSummary from '../component/Card/CardNetworkSummary';
-import CardPrice from '../component/Card/CardPrice';
+import CardPoS from '../component/Card/CardPoS';
+import CardPoSCalc from '../component/Card/CardPoSCalc';
 import CardStatus from '../component/Card/CardStatus';
 import WatchList from '../component/WatchList';
+import CardSeeSaw from '../component/Card/CardSeeSaw';
 
 class CoinSummary extends Component {
   static propTypes = {
     onSearch: PropTypes.func.isRequired,
+    onRemove: PropTypes.func.isRequired,
+    searches: PropTypes.array.isRequired,
     // State
     coins: PropTypes.array.isRequired,
     txs: PropTypes.array.isRequired,
-    watch: PropTypes.array.isRequired,
-    // Dispatch
-    onRemove: PropTypes.func.isRequired,
   };
 
   render() {
@@ -29,33 +31,40 @@ class CoinSummary extends Component {
       ? this.props.coins[0]
       : { diff: 0, netHash: 0 };
 
+    const height = this.props.txs.length
+      ? this.props.txs[0].blockHeight
+      : coin.blocks;
+
+    const watchlist = height >= blockchain.params.LAST_POW_BLOCK && height >= blockchain.params.LAST_SEESAW_BLOCK
+      ? this.props.searches
+      : this.props.searches.slice(0, 7);
+
     return (
       <div>
         <div className="row">
-          <div className="col-md-12">
+          <div className="col-md-12 col-lg-9">
             <div className="row">
-              <div className="col-md-12 col-lg-3">
+              <div className="col-md-12 col-lg-6">
                 <CardStatus
-                  blocks={ this.props.txs.length
-                    ? this.props.txs[0].blockHeight
-                    : coin.blocks
-                  }
+                  avgBlockTime={ coin.avgBlockTime }
+                  avgMNTime={ coin.avgMNTime }
+                  blocks={ height }
                   peers={ coin.peers }
                   status={ coin.status } />
               </div>
-              <div className="col-md-12 col-lg-3">
-                <CardPrice
+              <div className="col-md-12 col-lg-6">
+                <CardPoSCalc />
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-md-12 col-lg-6">
+                <CardMarket
                   btc={ coin.btc }
-                  volume={ coin.cap } />
-              </div>
-              <div className="col-md-12 col-lg-3">
-                <CardNetworkSummary
-                  difficulty={ coin.diff }
-                  hashps={ coin.netHash }
+                  usd={ coin.usd }
                   xAxis={ this.props.coins.map(c => c.createdAt) }
-                  yAxis={ this.props.coins.map(c => c.diff ? c.diff : 0.0) } />
+                  yAxis={ this.props.coins.map(c => c.usd ? c.usd : 0.0) } />
               </div>
-              <div className="col-md-12 col-lg-3">
+              <div className="col-md-12 col-lg-6">
                 <CardMasternodeSummary
                   offline={ coin.mnsOff }
                   online={ coin.mnsOn }
@@ -64,20 +73,29 @@ class CoinSummary extends Component {
               </div>
             </div>
           </div>
+          <div className="col-md-12 col-lg-3">
+            <CardPoS
+              average={ coin.avgBlockTime }
+              height={ height }
+              posHeight={ blockchain.params.LAST_POW_BLOCK } />
+            <CardSeeSaw
+              average={ coin.avgBlockTime }
+              height={ height }
+              ssHeight={ blockchain.params.LAST_SEESAW_BLOCK } />
+            <WatchList
+              items={ watchlist }
+              onSearch={ this.props.onSearch }
+              onRemove={ this.props.onRemove } />
+          </div>
         </div>
       </div>
     );
   };
 }
 
-const mapDispatch = dispatch => ({
-  onRemove: term => Actions.removeWatch(dispatch, term)
-});
-
 const mapState = state => ({
   coins: state.coins,
-  txs: state.txs,
-  watch: state.watch
+  txs: state.txs
 });
 
-export default connect(mapState, mapDispatch)(CoinSummary);
+export default connect(mapState)(CoinSummary);

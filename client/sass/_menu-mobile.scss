@@ -5,7 +5,7 @@
 	flex-direction: column;
 
 	box-shadow: #7d7d7d 0px 0px 16px;
-	color: $black;
+	color: $white;
 	flex: 1;
 	font-weight: lighter;
     margin: 0;
@@ -18,16 +18,13 @@
 
 	&__toggle {
 		cursor: pointer;
-		font-size: 2em;
-		height: 24px;
-		width: 24px;
+		font-size: 4em;
+		height: 30px;
+		width: 30px;
 	}
 
 	&__search-wrapper {
-		background: $menu-gradient-main;
-		background: -moz-linear-gradient(-45deg, $menu-gradient-main 1%, $menu-gradient-main 50%, $menu-gradient-secondary 80%);
-		background: -webkit-linear-gradient(-45deg, $menu-gradient-main 1%,$menu-gradient-main 50%,$menu-gradient-secondary 80%);
-		background: linear-gradient(135deg, $menu-gradient-main 1%,$menu-gradient-main 50%,$menu-gradient-secondary 80%);
+		background: rgb(41, 77, 234);
 		display: flex;
 		align-items: center;
 		flex-direction: row;
@@ -55,7 +52,7 @@
 		width: 95%;
 
 		&:hover {
-			color: $green;
+			color: $blue;
 			text-decoration: none;
 		}
 

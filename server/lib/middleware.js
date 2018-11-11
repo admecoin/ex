@@ -20,8 +20,15 @@ const middleware = (app) => {
   app.use('/api', new rateLimit({
     windowMs: 1000, // 1 second
     max: 10,
-    delayMs: 100
+    //delayMs: 500
   }));
+
+  app.use('/ext/getbalance', new rateLimit({
+    windowMs: 1200,
+    max: 1,
+    //delayMs: 1000
+  }));
+
 };
 
 module.exports =  middleware;

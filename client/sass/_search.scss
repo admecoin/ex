@@ -4,7 +4,7 @@
 	width: 100%;
 
 	&:hover {
-		box-shadow: 0 6px 10px rgba(0,0,0,0.15), 0 4px 4px rgba(0,0,0,0.11);
+		
 	}
 
 	&__icon {
@@ -16,7 +16,7 @@
 	}
 
 	&__input {
-		border: 1px solid $gray-light;
+		border: 1px solid lighten($gray, 15%);
 	  	border-radius: 5px;
 	  	margin: 0;
 		padding: 25px;
@@ -25,17 +25,19 @@
 
 		&:focus,
 		&:hover {
+
+			outline: none !important;
 			border-color: inherit;
 
 			& + svg {
 				opacity: 1;
 			}
 		}
+
 	}
 
 	&--mobile {
 	  font-size: .8em;
-	  color: $white;
 	}
 
 	&--mobile &__input {

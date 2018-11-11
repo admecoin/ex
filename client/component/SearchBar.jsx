@@ -21,7 +21,7 @@ export default class SearchBar extends Component {
     if (ev.key === 'Enter') {
       ev.preventDefault();
 
-      const term = ev.target.value;
+      const term = ev.target.value.trim();
       ev.target.value = '';
 
       if (!!term) {
@@ -34,12 +34,14 @@ export default class SearchBar extends Component {
     const { props } = this;
 
     return (
-      <div className={ `search ${ props.className ? props.className : '' }` }>
-        <input
-          className="search__input"
-          onKeyPress={ this.handleKeyPress }
-          placeholder={ props.placeholder } />
-        <Icon name="search" className="search__icon" />
+      <div className="animated fadeIn" style={{ width: '100%' }}>
+        <div className={ `search ${ props.className ? props.className : '' }` }>
+          <input
+            className="search__input"
+            onKeyPress={ this.handleKeyPress }
+            placeholder={ props.placeholder } />
+          <Icon name="search" className="search__icon" />
+        </div>
       </div>
     );
   };

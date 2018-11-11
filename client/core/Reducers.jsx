@@ -21,7 +21,7 @@ const coinInit = {
  * @param {Object} action The flux compatible action.
  */
 const coin = (state = coinInit, action) => {
-  if (action.type === COIN) {
+  if (action.type === COIN && action.payload) {
     return { ...action.payload };
   }
   return state;
@@ -34,7 +34,7 @@ const coin = (state = coinInit, action) => {
  * @param {Object} action The flux compatible action.
  */
 const coins = (state = [], action) => {
-  if (action.type === COINS) {
+  if (action.type === COINS && action.payload) {
     return [ ...action.payload ];
   }
   return state;
@@ -46,28 +46,9 @@ const coins = (state = [], action) => {
  * @param {Object} action The flux compatible action.
  */
 const txs = (state = [], action) => {
-  if (action.type === TXS) {
+  if (action.type === TXS && action.payload) {
     return [ ...action.payload ];
   }
-  return state;
-};
-
-/**
- * Store the last 10 search results.
- * @param {Array} state The current history of searches.
- * @param {Object} action The flux compatible action.
- */
-const watch = (state = [], action) => {
-  if (action.type === WATCH_ADD) {
-    const items = [ action.payload, ...state ];
-    return items.slice(0, 10);
-  }
-
-  if (action.type === WATCH_REMOVE) {
-    const items = state.filter( item => action.payload !== item );
-    return items;
-  }
-
   return state;
 };
 
@@ -75,6 +56,5 @@ const watch = (state = [], action) => {
 export default combineReducers({
   coin,
   coins,
-  txs,
-  watch
+  txs
 });
